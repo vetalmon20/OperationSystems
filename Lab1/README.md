@@ -1,0 +1,3 @@
+# OperationSystems
+ 
+Варіант 14
