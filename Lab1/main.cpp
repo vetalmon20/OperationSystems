@@ -1,3 +1,4 @@
+#include <tchar.h>
 #include <iostream>
 #include "demofuncs"
 #include "thread"
@@ -5,10 +6,14 @@
 #include <string>
 #include <vector>
 #include <conio.h>
+#include <dshow.h>
+
+#define EXEFUNCTIONPATH R"(D:\University\3rd Course\OperationSystems\OperationSystems\Lab1\Functions\cmake-build-debug\Functions.exe)"
+#define GET_TEXT 1
 
 using namespace std;
 
-#define GET_TEXT 1
+PCOPYDATASTRUCT pMyCDS;
 
 HWND hEdit, hWrongValue;
 int res = 0;
@@ -58,6 +63,44 @@ bool isInteger(char *s){
     return true;
 }
 
+bool evaluateFunc(LPCTSTR exePath, char func, int x){
+    string xStr = std::to_string(x);
+    string params;
+    params.push_back(func);
+    params += " ";
+    params += xStr;
+    std::vector<char> cstr(params.c_str(), params.c_str() + params.size() + 1);
+    CHAR *paramsChar = reinterpret_cast<char*>(cstr.data());
+
+    STARTUPINFO si = {0};
+    PROCESS_INFORMATION pi = {nullptr};
+    //CREATE_NO_WINDOW
+    if(!CreateProcess(exePath,           // No module name (use command line)
+                      paramsChar,        // Command line
+                      nullptr,           // Process handle not inheritable
+                      nullptr,           // Thread handle not inheritable
+                      FALSE,             // Set handle inheritance to FALSE
+                      0,  // No creation flags
+                      nullptr,           // Use parent's environment block
+                      nullptr,           // Use parent's starting directory
+                      &si,               // Pointer to STARTUPINFO structure
+                      &pi)){             // Pointer to PROCESS_INFORMATION structure
+        printf("CreateProcess failed (%d).\n", GetLastError());
+        return false;
+    }
+
+    return true;
+}
+
+bool callFunctions(int x){
+    if(!evaluateFunc(EXEFUNCTIONPATH, 'f', x))
+        return false;
+    if(!evaluateFunc(EXEFUNCTIONPATH, 'g', x))
+        return false;
+
+    return true;
+}
+
 void addControls(HWND hwnd){
     CreateWindowW(L"static", L"Enter the value of x:", WS_VISIBLE | WS_CHILD,  30, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
     hEdit = CreateWindowW(L"edit", L"", WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL, 200, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
@@ -66,7 +109,33 @@ void addControls(HWND hwnd){
 
 }
 
-LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
+
+LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
+
+    switch(msg){
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        case WM_CREATE:
+            //addControls(hwnd);
+            break;
+        case WM_COPYDATA:
+            pMyCDS = (PCOPYDATASTRUCT) lp;
+            switch( pMyCDS->dwData )
+            {
+                case MYDISPLAY:
+                    MyDisplay( (LPSTR) ((MYREC *)(pMyCDS->lpData))->s1,
+                               (LPSTR) ((MYREC *)(pMyCDS->lpData))->s2,
+                               (DWORD) ((MYREC *)(pMyCDS->lpData))->n );
+            }
+            break;
+        default:
+            return DefWindowProcW(hwnd, msg, wp, lp);
+    }
+    return 0;
+}
+
+LRESULT CALLBACK myWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
     switch(msg){
         case WM_DESTROY:
             PostQuitMessage(0);
@@ -82,8 +151,11 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
                     if(!isInteger(text))
                         SetWindowText(hWrongValue, "Wrong value!");
-                    else
+                    else{
+                        int x = std::strtol(text, nullptr, 10);
+                        callFunctions(x);
                         SetWindowText(hWrongValue, "");
+                    }
                     break;
             } 
             break;
@@ -102,13 +174,13 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
     //MessageBox(nullptr, "HELLO", "TESTNAME", MB_DEFAULT_DESKTOP_ONLY);
 
-    WNDCLASSW wc = {0};
+    //WNDCLASSW wc = {0};
 
-    wc.hbrBackground = (HBRUSH) COLOR_WINDOW;
-    wc.hCursor = LoadCursor(nullptr, IDC_HAND); //IDC_ARROW
-    wc.hInstance = hInst;
-    wc.lpszClassName = L"myWindowClass";
-    wc.lpfnWndProc = MyWindowProcedure;
+    WNDCLASSW wc = {0, myWindowProcedure, 0, 0, hInst,
+                    nullptr, LoadCursor(nullptr,IDC_ARROW),(HBRUSH) COLOR_WINDOW,
+                    nullptr, L"myWindowClass"};
+
+
 
     if (!RegisterClassW(&wc))
         return -1;
@@ -116,16 +188,21 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     CreateWindowW(L"myWindowClass", L"WindowName", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 500, 1000, nullptr,
                   nullptr, nullptr, nullptr);
 
+    WNDCLASSW hiddenWindow = {0, hiddenWindowProcedure, 0, 0, hInst,
+                    nullptr, nullptr,(HBRUSH) COLOR_WINDOW,
+                    nullptr, L"hiddenWindowClass"};
+
+    if (!RegisterClassW(&hiddenWindow))
+        return -1;
+
+    CreateWindowW(L"hiddenWindowClass", L"hiddenWindow", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 800, 100, 100, 100, nullptr,
+                  nullptr, nullptr, nullptr);
+
     MSG msg = {nullptr};
 
-    while (GetMessage(&msg, nullptr, NULL, NULL)) {
+    while (GetMessage(&msg, nullptr, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-
-        if(kbhit()){
-                return -1;
-        }
-
     }
 
 
