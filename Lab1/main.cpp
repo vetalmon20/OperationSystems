@@ -4,18 +4,29 @@
 #include "thread"
 #include <windows.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include <conio.h>
 #include <dshow.h>
 
 #define EXEFUNCTIONPATH R"(D:\University\3rd Course\OperationSystems\OperationSystems\Lab1\Functions\cmake-build-debug\Functions.exe)"
 #define GET_TEXT 1
+#define GET_RESULT 1
 
 using namespace std;
 
+typedef struct{
+    int xResult;
+    char func;
+} RESULT;
+
+int fx, gx;
+bool fIsFinished = false;
+bool gIsFinished = false;
+
 PCOPYDATASTRUCT pMyCDS;
 
-HWND hEdit, hWrongValue;
+HWND hEdit, hWrongValue, hFx, hGx, binaryResult;
 int res = 0;
 
 static string utf16ToUTF8( const wstring &s )
@@ -63,10 +74,10 @@ bool isInteger(char *s){
     return true;
 }
 
-bool evaluateFunc(LPCTSTR exePath, char func, int x){
+bool evaluateFunc(LPCTSTR exePath, string func, int x){
     string xStr = std::to_string(x);
-    string params;
-    params.push_back(func);
+    string params = std::move(func);
+    //params.push_back(func);
     params += " ";
     params += xStr;
     std::vector<char> cstr(params.c_str(), params.c_str() + params.size() + 1);
@@ -80,7 +91,39 @@ bool evaluateFunc(LPCTSTR exePath, char func, int x){
                       nullptr,           // Process handle not inheritable
                       nullptr,           // Thread handle not inheritable
                       FALSE,             // Set handle inheritance to FALSE
-                      0,  // No creation flags
+                      0,                 // No creation flags
+                      nullptr,           // Use parent's environment block
+                      nullptr,           // Use parent's starting directory
+                      &si,               // Pointer to STARTUPINFO structure
+                      &pi)){             // Pointer to PROCESS_INFORMATION structure
+        printf("CreateProcess failed (%d).\n", GetLastError());
+        return false;
+    }
+
+    return true;
+}
+
+bool evaluateBinary(LPCTSTR exePath, string func, int fxVal, int gxVal){
+    string fxStr = std::to_string(fxVal);
+    string gxStr = std::to_string(gxVal);
+    string params = std::move(func);
+    //params.push_back(func);
+    params += " ";
+    params += fxStr;
+    params += " ";
+    params += gxStr;
+    std::vector<char> cstr(params.c_str(), params.c_str() + params.size() + 1);
+    CHAR *paramsChar = reinterpret_cast<char*>(cstr.data());
+
+    STARTUPINFO si = {0};
+    PROCESS_INFORMATION pi = {nullptr};
+    //CREATE_NO_WINDOW
+    if(!CreateProcess(exePath,           // No module name (use command line)
+                      paramsChar,        // Command line
+                      nullptr,           // Process handle not inheritable
+                      nullptr,           // Thread handle not inheritable
+                      FALSE,             // Set handle inheritance to FALSE
+                      0,                 // No creation flags
                       nullptr,           // Use parent's environment block
                       nullptr,           // Use parent's starting directory
                       &si,               // Pointer to STARTUPINFO structure
@@ -93,9 +136,9 @@ bool evaluateFunc(LPCTSTR exePath, char func, int x){
 }
 
 bool callFunctions(int x){
-    if(!evaluateFunc(EXEFUNCTIONPATH, 'f', x))
+    if(!evaluateFunc(EXEFUNCTIONPATH, "f", x))
         return false;
-    if(!evaluateFunc(EXEFUNCTIONPATH, 'g', x))
+    if(!evaluateFunc(EXEFUNCTIONPATH, "g", x))
         return false;
 
     return true;
@@ -106,9 +149,42 @@ void addControls(HWND hwnd){
     hEdit = CreateWindowW(L"edit", L"", WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL, 200, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
     CreateWindowW(L"button", L"Execute!", WS_VISIBLE | WS_CHILD, 100, 200, 200, 100, hwnd, (HMENU)GET_TEXT, nullptr, nullptr);
     hWrongValue = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 30, 120, 200, 40, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"static", L"f(x) result:", WS_VISIBLE | WS_CHILD,  30, 400, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"static", L"g(x) result:", WS_VISIBLE | WS_CHILD,  160, 400, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    hFx = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  30, 420, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    hGx = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  160, 420, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"static", L"RESULT:", WS_VISIBLE | WS_CHILD,  100, 540, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    binaryResult = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  100, 570, 100, 20, hwnd, nullptr, nullptr, nullptr);
+}
+
+void addFuncResults(int xResult, char func){
+
+    /*string xResultStr = std::to_string(xResult);
+    string funcStr;
+    funcStr.push_back(func);
+    MessageBox(nullptr, xResultStr.c_str(), funcStr.c_str(), MB_DEFAULT_DESKTOP_ONLY);*/
+
+    if(func == 'f'){
+        fx = xResult;
+        fIsFinished = true;
+    }
+
+
+    if(func == 'g'){
+        gx = xResult;
+        gIsFinished = true;
+    }
 
 }
 
+void resetFuncResults(){
+    fIsFinished = false;
+    gIsFinished = false;
+}
+
+void resetLabels(){
+
+}
 
 LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
@@ -121,12 +197,39 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             break;
         case WM_COPYDATA:
             pMyCDS = (PCOPYDATASTRUCT) lp;
-            switch( pMyCDS->dwData )
-            {
-                case MYDISPLAY:
-                    MyDisplay( (LPSTR) ((MYREC *)(pMyCDS->lpData))->s1,
-                               (LPSTR) ((MYREC *)(pMyCDS->lpData))->s2,
-                               (DWORD) ((MYREC *)(pMyCDS->lpData))->n );
+            switch(pMyCDS->dwData){
+                case GET_RESULT:
+                    if(fIsFinished && gIsFinished){
+
+                        string xResult = std::to_string(((RESULT *)(pMyCDS->lpData))->xResult);
+                        SetWindowText(binaryResult, xResult.c_str());
+
+                    } else {
+                        addFuncResults(((RESULT *)(pMyCDS->lpData))->xResult, ((RESULT *)(pMyCDS->lpData))->func);
+
+                        if(((RESULT *)(pMyCDS->lpData))->func == 'g'){
+                            string xResult = std::to_string(((RESULT *)(pMyCDS->lpData))->xResult);
+                            SetWindowText(hGx, xResult.c_str());
+
+                            if(fIsFinished){
+                                evaluateBinary(EXEFUNCTIONPATH, "b", fx, gx);
+                            }
+
+                        }
+
+                        if(((RESULT *)(pMyCDS->lpData))->func == 'f'){
+                            string xResult = std::to_string(((RESULT *)(pMyCDS->lpData))->xResult);
+                            SetWindowText(hFx, xResult.c_str());
+
+                            if(gIsFinished){
+                                evaluateBinary(EXEFUNCTIONPATH, "b", fx, gx);
+                            } else {
+
+                            }
+                        }
+                    }
+
+                    break;
             }
             break;
         default:
@@ -152,6 +255,9 @@ LRESULT CALLBACK myWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     if(!isInteger(text))
                         SetWindowText(hWrongValue, "Wrong value!");
                     else{
+                        resetFuncResults();
+                        resetLabels();                                                          ////////////////////
+
                         int x = std::strtol(text, nullptr, 10);
                         callFunctions(x);
                         SetWindowText(hWrongValue, "");

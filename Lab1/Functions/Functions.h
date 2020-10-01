@@ -13,6 +13,8 @@ public:
     static int gFunc(int x);
 
     static int fFunc(int x);
+
+    static int binaryOperation(int fx, int gx);
 };
 
 

@@ -25,3 +25,7 @@ int Functions::gFunc(int x) {
     Sleep(2800);
     return x * 2;
 }
+
+int Functions::binaryOperation(int fx, int gx) {
+    return fx * gx;
+}
