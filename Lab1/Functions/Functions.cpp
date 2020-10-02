@@ -11,6 +11,9 @@ int Functions::fFunc(int x) {
     if(x == 2)
         Sleep(50000);
 
+    if(x == 0)
+        Sleep(50000);
+
     Sleep(2200);
     return x * 2;
 }
@@ -21,6 +24,9 @@ int Functions::gFunc(int x) {
     }
     if(x == -2)
         Sleep(5000);
+
+    if(x == 0)
+        Sleep(50000);
 
     Sleep(2800);
     return x * 2;

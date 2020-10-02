@@ -3,11 +3,13 @@
 #include "demofuncs"
 #include "thread"
 #include <windows.h>
+//#include <commctrl.h>
 #include <string>
 #include <utility>
 #include <vector>
 #include <conio.h>
 #include <dshow.h>
+
 
 #define EXEFUNCTIONPATH R"(D:\University\3rd Course\OperationSystems\OperationSystems\Lab1\Functions\cmake-build-debug\Functions.exe)"
 #define GET_TEXT 1
@@ -26,7 +28,7 @@ bool gIsFinished = false;
 
 PCOPYDATASTRUCT pMyCDS;
 
-HWND hEdit, hWrongValue, hFx, hGx, binaryResult, button;
+HWND hEdit, hWrongValue, hFx, hGx, binaryResult, button, hError;
 vector<PROCESS_INFORMATION> pinfs;
 
 int res = 0;
@@ -148,6 +150,36 @@ bool callFunctions(int x){
     return true;
 }
 
+bool terminateChildProcesses(){
+    for(int i = 0 ; i < pinfs.size(); i++){
+        if(!TerminateProcess(pinfs[i].hProcess, 0))
+            return false;
+        if(!CloseHandle(pinfs[i].hProcess))
+            return false;
+        if(!CloseHandle(pinfs[i].hThread))
+            return false;
+        pinfs[i].hProcess = pinfs[i].hThread = nullptr;
+    }
+
+    pinfs.clear();
+
+    cout << "PROCESS WERE TERMINATED" << endl;
+
+    return true;
+}
+
+/*LRESULT CALLBACK EditCallBckProcedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData){
+    if( (uMsg == WM_CHAR) && (wParam == VK_ESCAPE) )
+    {
+        cout << "PRESSED EDIT FUNC";
+        SetWindowText(hError, "Calculation was terminated by pressing esc button");
+        EnableWindow(button, true);
+        terminateChildProcesses();
+        return 0;
+    }
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}*/
+
 void addControls(HWND hwnd){
     CreateWindowW(L"static", L"Enter the value of x:", WS_VISIBLE | WS_CHILD,  30, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
     hEdit = CreateWindowW(L"edit", L"", WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL, 200, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
@@ -159,6 +191,9 @@ void addControls(HWND hwnd){
     hGx = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  160, 420, 100, 20, hwnd, nullptr, nullptr, nullptr);
     CreateWindowW(L"static", L"RESULT:", WS_VISIBLE | WS_CHILD,  100, 540, 100, 20, hwnd, nullptr, nullptr, nullptr);
     binaryResult = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  100, 570, 100, 20, hwnd, nullptr, nullptr, nullptr);
+    hError = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD,  120, 600, 300, 20, hwnd, nullptr, nullptr, nullptr);
+
+    /*SetWindowSubclass(hEdit, &EditCallBckProcedure, 0, 0);*/
 }
 
 void addFuncResults(int xResult, char func){
@@ -190,23 +225,7 @@ void resetLabels(){
 
 }
 
-bool terminateChildProcesses(){
-    for(int i = 0 ; i < pinfs.size(); i++){
-        if(!TerminateProcess(pinfs[i].hProcess, 0))
-            return false;
-        if(!CloseHandle(pinfs[i].hProcess))
-            return false;
-        if(!CloseHandle(pinfs[i].hThread))
-            return false;
-        pinfs[i].hProcess = pinfs[i].hThread = nullptr;
-    }
 
-    pinfs.clear();
-
-    cout << "PROCESS WERE TERMINATED" << endl;
-
-    return true;
-}
 
 LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
@@ -265,6 +284,15 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                     break;
             }
             break;
+
+        case WM_KEYDOWN:
+            if(wp == VK_ESCAPE){
+                cout << "PRESSED HIDDEN WINDOW BUTTON";
+                /*SetWindowText(hError, "Calculation was terminated by pressing esc button");
+                EnableWindow(button, true);
+                terminateChildProcesses();*/
+            }
+            break;
         default:
             return DefWindowProcW(hwnd, msg, wp, lp);
     }
@@ -294,6 +322,7 @@ LRESULT CALLBACK myWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                         int x = std::strtol(text, nullptr, 10);
                         callFunctions(x);
                         SetWindowText(hWrongValue, "");
+                        SetWindowText(hError, "");
                         EnableWindow(button, false);
                     }
                     break;
@@ -301,8 +330,14 @@ LRESULT CALLBACK myWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
             break;
 
         case WM_KEYDOWN:
-            if(wp == VK_ESCAPE)
-                PostQuitMessage(0);
+            if(wp == VK_ESCAPE){
+                cout << "PRESSED";
+                SetWindowText(hError, "Calculation was terminated by pressing esc button");
+                EnableWindow(button, true);
+                terminateChildProcesses();
+            }
+                //PostQuitMessage(0);
+
             break;
         default:
             return DefWindowProcW(hwnd, msg, wp, lp);
