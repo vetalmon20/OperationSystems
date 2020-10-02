@@ -26,7 +26,9 @@ bool gIsFinished = false;
 
 PCOPYDATASTRUCT pMyCDS;
 
-HWND hEdit, hWrongValue, hFx, hGx, binaryResult;
+HWND hEdit, hWrongValue, hFx, hGx, binaryResult, button;
+vector<PROCESS_INFORMATION> pinfs;
+
 int res = 0;
 
 static string utf16ToUTF8( const wstring &s )
@@ -100,6 +102,8 @@ bool evaluateFunc(LPCTSTR exePath, string func, int x){
         return false;
     }
 
+    pinfs.push_back(pi);
+
     return true;
 }
 
@@ -147,7 +151,7 @@ bool callFunctions(int x){
 void addControls(HWND hwnd){
     CreateWindowW(L"static", L"Enter the value of x:", WS_VISIBLE | WS_CHILD,  30, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
     hEdit = CreateWindowW(L"edit", L"", WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL, 200, 100, 150, 20, hwnd, nullptr, nullptr, nullptr);
-    CreateWindowW(L"button", L"Execute!", WS_VISIBLE | WS_CHILD, 100, 200, 200, 100, hwnd, (HMENU)GET_TEXT, nullptr, nullptr);
+    button = CreateWindowW(L"button", L"Execute!", WS_VISIBLE | WS_CHILD, 100, 200, 200, 100, hwnd, (HMENU)GET_TEXT, nullptr, nullptr);
     hWrongValue = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 30, 120, 200, 40, hwnd, nullptr, nullptr, nullptr);
     CreateWindowW(L"static", L"f(x) result:", WS_VISIBLE | WS_CHILD,  30, 400, 100, 20, hwnd, nullptr, nullptr, nullptr);
     CreateWindowW(L"static", L"g(x) result:", WS_VISIBLE | WS_CHILD,  160, 400, 100, 20, hwnd, nullptr, nullptr, nullptr);
@@ -186,6 +190,24 @@ void resetLabels(){
 
 }
 
+bool terminateChildProcesses(){
+    for(int i = 0 ; i < pinfs.size(); i++){
+        if(!TerminateProcess(pinfs[i].hProcess, 0))
+            return false;
+        if(!CloseHandle(pinfs[i].hProcess))
+            return false;
+        if(!CloseHandle(pinfs[i].hThread))
+            return false;
+        pinfs[i].hProcess = pinfs[i].hThread = nullptr;
+    }
+
+    pinfs.clear();
+
+    cout << "PROCESS WERE TERMINATED" << endl;
+
+    return true;
+}
+
 LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
     switch(msg){
@@ -204,12 +226,23 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                         string xResult = std::to_string(((RESULT *)(pMyCDS->lpData))->xResult);
                         SetWindowText(binaryResult, xResult.c_str());
 
+                        EnableWindow(button, true);
+
                     } else {
                         addFuncResults(((RESULT *)(pMyCDS->lpData))->xResult, ((RESULT *)(pMyCDS->lpData))->func);
 
                         if(((RESULT *)(pMyCDS->lpData))->func == 'g'){
                             string xResult = std::to_string(((RESULT *)(pMyCDS->lpData))->xResult);
                             SetWindowText(hGx, xResult.c_str());
+
+                            if(((RESULT *)(pMyCDS->lpData))->xResult == 0){
+                                terminateChildProcesses();
+
+                                EnableWindow(button, true);
+                                SetWindowText(hFx, "Undefined");
+                                SetWindowText(binaryResult, "0");
+                            }
+
 
                             if(fIsFinished){
                                 evaluateBinary(EXEFUNCTIONPATH, "b", fx, gx);
@@ -261,6 +294,7 @@ LRESULT CALLBACK myWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                         int x = std::strtol(text, nullptr, 10);
                         callFunctions(x);
                         SetWindowText(hWrongValue, "");
+                        EnableWindow(button, false);
                     }
                     break;
             } 
@@ -301,7 +335,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     if (!RegisterClassW(&hiddenWindow))
         return -1;
 
-    CreateWindowW(L"hiddenWindowClass", L"hiddenWindow", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 800, 100, 100, 100, nullptr,
+    CreateWindowW(L"hiddenWindowClass", L"hiddenWindow", WS_OVERLAPPEDWINDOW | SW_HIDE, 800, 100, 100, 100, nullptr,
                   nullptr, nullptr, nullptr);
 
     MSG msg = {nullptr};

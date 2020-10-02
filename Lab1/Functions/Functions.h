@@ -2,6 +2,7 @@
 #define FUNCTIONS_FUNCTIONS_H
 
 #include <windows.h>
+#include <iostream>
 
 class Functions {
 private:

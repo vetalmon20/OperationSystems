@@ -82,5 +82,6 @@ int  _tmain(int argc, TCHAR *argv[]){
     else
         MessageBox(nullptr, "Can't send WM_COPYDATA", "MyApp", MB_OK);
 
-    return 0;
+    ExitProcess(1);
+    //return 0;
 }
