@@ -3,7 +3,7 @@ project(Lab1)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(lib)
+include_directories(Lib Utils)
 
-add_executable(Lab1 main.cpp lib/demofuncs Manager.cpp Manager.h Functions.cpp Functions.h)
+add_executable(Lab1 main.cpp Lib/demofuncs Manager.cpp Manager.h Utils/Utils.cpp Utils/Utils.h)
 

@@ -3,7 +3,6 @@
 #include <tchar.h>
 #include "Functions.h"
 #include <string>
-#include <cstdlib>
 
 #define GET_RESULT 1
 
@@ -16,7 +15,6 @@ typedef struct{
 
 COPYDATASTRUCT resultCDS;
 RESULT funcResult;
-HRESULT hResult;
 
 int  _tmain(int argc, TCHAR *argv[]){
 
