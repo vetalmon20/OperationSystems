@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <iostream>
 
+
 class Functions {
 private:
 
@@ -16,6 +17,7 @@ public:
     static int fFunc(int x);
 
     static int binaryOperation(int fx, int gx);
+
 };
 
 

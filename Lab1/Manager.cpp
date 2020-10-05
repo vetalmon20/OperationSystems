@@ -140,6 +140,30 @@ void Manager::addControls(HWND hwnd) {
                                       WS_VISIBLE | WS_CHILD,  120, 600,
                                       300, 20, hwnd, nullptr, nullptr, nullptr);
 
+    this->hDemoFuncsButtons[0] = CreateWindowW(L"button", L"Demofunc 1",
+                                         WS_VISIBLE | WS_CHILD, 30, 650,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_1, nullptr, nullptr);
+
+    this->hDemoFuncsButtons[1] = CreateWindowW(L"button", L"Demofunc 2",
+                                         WS_VISIBLE | WS_CHILD, 120, 650,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_2, nullptr, nullptr);
+
+    this->hDemoFuncsButtons[2] = CreateWindowW(L"button", L"Demofunc 3",
+                                         WS_VISIBLE | WS_CHILD, 210, 650,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_3, nullptr, nullptr);
+
+    this->hDemoFuncsButtons[3] = CreateWindowW(L"button", L"Demofunc 4",
+                                         WS_VISIBLE | WS_CHILD, 30, 780,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_4, nullptr, nullptr);
+
+    this->hDemoFuncsButtons[4] = CreateWindowW(L"button", L"Demofunc 5",
+                                         WS_VISIBLE | WS_CHILD, 120, 780,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_5, nullptr, nullptr);
+
+    this->hDemoFuncsButtons[5] = CreateWindowW(L"button", L"Demofunc 6",
+                                         WS_VISIBLE | WS_CHILD, 210, 780,
+                                         80, 20, hwnd, (HMENU)DEMOFUNC_6, nullptr, nullptr);
+
 }
 
 void Manager::writeFuncResult(int xResult, char func) {
@@ -150,6 +174,16 @@ void Manager::writeFuncResult(int xResult, char func) {
     }
 
     if(func == 'g'){
+        this->gx = xResult;
+        this->gIsFinished = true;
+    }
+
+    if(func == 'q'){
+        this->fx = xResult;
+        this->fIsFinished = true;
+    }
+
+    if(func == 'w'){
         this->gx = xResult;
         this->gIsFinished = true;
     }
@@ -184,8 +218,7 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                         string xResult = std::to_string(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult);
                         SetWindowText(manager->getHBinaryResultLabel(), xResult.c_str());
 
-                        EnableWindow(manager->getHComputeButton(), true);
-                        EnableWindow(manager->getHInputWindow(), true);
+                        manager->enableButtons();
 
                     } else {
                         manager->writeFuncResult(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult,
@@ -198,8 +231,7 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                             if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult == 0){
                                 manager->terminateChildProcesses();
 
-                                EnableWindow(manager->getHComputeButton(), true);
-                                EnableWindow(manager->getHInputWindow(), true);
+                                manager->enableButtons();
                                 SetWindowText(manager->getHFxLabel(), "Undefined");
                                 SetWindowText(manager->getHBinaryResultLabel(), "0");
                                 SetWindowText(manager->getHErrorLabel(), "Calculation was terminated (zero value)");
@@ -219,8 +251,7 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                             if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult == 0){
                                 manager->terminateChildProcesses();
 
-                                EnableWindow(manager->getHComputeButton(), true);
-                                EnableWindow(manager->getHInputWindow(), true);
+                                manager->enableButtons();
                                 SetWindowText(manager->getHGxLabel(), "Undefined");
                                 SetWindowText(manager->getHBinaryResultLabel(), "0");
                                 SetWindowText(manager->getHErrorLabel(), "Calculation was terminated (zero value)");
@@ -231,16 +262,64 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                             }
                         }
                     }
+                    break;
 
+                case GET_RESULT_DEMO:
+                    if(manager->isFIsFinished() && manager->isGIsFinished()){
+
+                        string xResult = std::to_string(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult);
+                        SetWindowText(manager->getHBinaryResultLabel(), xResult.c_str());
+                        manager->enableButtons();
+
+                    } else {
+                        //cout << (((RESULT *)(manager->getPCopyDataStruct()->lpData))->func);
+                        manager->writeFuncResult(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult,
+                                                 ((RESULT *)(manager->getPCopyDataStruct()->lpData))->func);
+
+                        if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->func == 'w'){
+
+                            string xResult = std::to_string(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult);
+                            SetWindowText(manager->getHGxLabel(), xResult.c_str());
+
+                            if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult == 0){
+                                manager->terminateChildProcesses();
+
+                                manager->enableButtons();
+                                SetWindowText(manager->getHFxLabel(), "Undefined");
+                                SetWindowText(manager->getHBinaryResultLabel(), "0");
+                                SetWindowText(manager->getHErrorLabel(), "Calculation was terminated (zero value)");
+                            }
+
+
+                            if(manager->isFIsFinished()){
+                                manager->evaluateBinaryProc(FUNCTION_PATH, "b", manager->getFx(), manager->getGx());
+                            }
+
+                        }
+
+                        if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->func == 'q'){
+                            cout << std::to_string(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult);
+                            string xResult = std::to_string(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult);
+                            SetWindowText(manager->getHFxLabel(), xResult.c_str());
+
+                            if(((RESULT *)(manager->getPCopyDataStruct()->lpData))->xResult == 0){
+                                manager->terminateChildProcesses();
+
+                                manager->enableButtons();
+                                SetWindowText(manager->getHGxLabel(), "Undefined");
+                                SetWindowText(manager->getHBinaryResultLabel(), "0");
+                                SetWindowText(manager->getHErrorLabel(), "Calculation was terminated (zero value)");
+                            }
+
+                            if(manager->isGIsFinished()){
+                                manager->evaluateBinaryProc(FUNCTION_PATH, "b", manager->getFx(), manager->getGx());
+                            }
+                        }
+                    }
                     break;
             }
             break;
 
-        case WM_KEYDOWN:
-            if(wp == VK_ESCAPE){
-                cout << "PRESSED HIDDEN WINDOW BUTTON";
-            }
-            break;
         default:
             return DefWindowProcW(hwnd, msg, wp, lp);
     }
@@ -248,6 +327,8 @@ LRESULT CALLBACK hiddenWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 }
 
 LRESULT CALLBACK mainWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    char text[100];
+
     switch(msg){
         case WM_DESTROY:
             PostQuitMessage(0);
@@ -256,15 +337,15 @@ LRESULT CALLBACK mainWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
             manager->addControls(hwnd);     ////
             break;
         case WM_COMMAND:
-            switch(wp){
+            switch(wp) {
                 case GET_TEXT:
-                    char text[100];
+
                     GetWindowText(manager->getHInputWindow(), text, 100);
 
                     manager->setInputValueInt(Utils::isInteger(text));
-                    if(!Utils::isInteger(text))
+                    if (!Utils::isInteger(text))
                         SetWindowText(manager->getHWrongValueLabel(), "Wrong value!");
-                    else{
+                    else {
                         SetFocus(hwnd);
                         manager->resetFuncResults();
                         manager->resetLabels();                                                          ////////////////////
@@ -272,30 +353,101 @@ LRESULT CALLBACK mainWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
                         manager->callFunctions(*(manager->getInputValueInt()));
                         SetWindowText(manager->getHWrongValueLabel(), "");
                         SetWindowText(manager->getHErrorLabel(), "");
-                        EnableWindow(manager->getHComputeButton(), false);
-                        EnableWindow(manager->getHInputWindow(), false);
+                        manager->disableButtons();
                     }
+                    break;
+
+                case DEMOFUNC_1:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(0);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
+                    break;
+
+                case DEMOFUNC_2:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(1);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
+                    break;
+
+                case DEMOFUNC_3:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(2);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
+                    break;
+
+                case DEMOFUNC_4:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(3);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
+                    break;
+
+                case DEMOFUNC_5:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(4);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
+                    break;
+
+                case DEMOFUNC_6:
+                    SetFocus(hwnd);
+                    manager->resetFuncResults();
+                    manager->resetLabels();                                                          ////////////////////
+
+                    manager->callDemoFunctions(5);
+                    SetWindowText(manager->getHWrongValueLabel(), "");
+                    SetWindowText(manager->getHErrorLabel(), "");
+                    manager->disableButtons();
+
                     break;
             }
             break;
 
         case WM_KEYDOWN:
-            if(wp == VK_ESCAPE){
+            if (wp == VK_ESCAPE) {
                 cout << "PRESSED ";
                 manager->terminateChildProcesses();
 
-                if(!IsWindowEnabled(manager->getHComputeButton()))
+                if (!IsWindowEnabled(manager->getHComputeButton()))
                     SetWindowText(manager->getHErrorLabel(), "Calculation was terminated by pressing esc");
 
-                if(!manager->isFIsFinished() && !IsWindowEnabled(manager->getHComputeButton()))
+                if (!manager->isFIsFinished() && !IsWindowEnabled(manager->getHComputeButton()))
                     SetWindowText(manager->getHFxLabel(), "Undefined");
 
-                if(!manager->isGIsFinished() && !IsWindowEnabled(manager->getHComputeButton()))
+                if (!manager->isGIsFinished() && !IsWindowEnabled(manager->getHComputeButton()))
                     SetWindowText(manager->getHGxLabel(), "Undefined");
 
-                EnableWindow(manager->getHComputeButton(), true);
-                EnableWindow(manager->getHInputWindow(), true);
+                manager->enableButtons();
             }
+
 
             break;
         default:
@@ -422,4 +574,39 @@ void Manager::windowsController(HINSTANCE hInst) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+}
+
+void Manager::enableButtons() {
+    EnableWindow(manager->getHComputeButton(), true);
+    EnableWindow(manager->getHInputWindow(), true);
+    EnableWindow(manager->getHDemoFuncsButtons()[0], true);
+    EnableWindow(manager->getHDemoFuncsButtons()[1], true);
+    EnableWindow(manager->getHDemoFuncsButtons()[2], true);
+    EnableWindow(manager->getHDemoFuncsButtons()[3], true);
+    EnableWindow(manager->getHDemoFuncsButtons()[4], true);
+    EnableWindow(manager->getHDemoFuncsButtons()[5], true);
+}
+
+HWND *Manager::getHDemoFuncsButtons() {
+    return hDemoFuncsButtons;
+}
+
+void Manager::disableButtons() {
+    EnableWindow(manager->getHComputeButton(), false);
+    EnableWindow(manager->getHInputWindow(), false);
+    EnableWindow(manager->getHDemoFuncsButtons()[0], false);
+    EnableWindow(manager->getHDemoFuncsButtons()[1], false);
+    EnableWindow(manager->getHDemoFuncsButtons()[2], false);
+    EnableWindow(manager->getHDemoFuncsButtons()[3], false);
+    EnableWindow(manager->getHDemoFuncsButtons()[4], false);
+    EnableWindow(manager->getHDemoFuncsButtons()[5], false);
+}
+
+bool Manager::callDemoFunctions(int x) {
+    if(!evaluateFuncProc(FUNCTION_PATH, "demoF", x))
+        return false;
+    if(!evaluateFuncProc(FUNCTION_PATH, "demoG", x))
+        return false;
+
+    return true;
 }

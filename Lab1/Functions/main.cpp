@@ -3,8 +3,10 @@
 #include <tchar.h>
 #include "Functions.h"
 #include <string>
+#include "demofuncs"
 
 #define GET_RESULT 1
+#define GET_RESULT_DEMO 2
 
 using namespace std;
 
@@ -15,6 +17,16 @@ typedef struct{
 
 COPYDATASTRUCT resultCDS;
 RESULT funcResult;
+
+template<spos::lab1::demo::op_group O>
+int f_func_demo(int x){
+    return spos::lab1::demo::f_func<O>(x);
+}
+
+template<spos::lab1::demo::op_group O>
+int g_func_demo(int x){
+    return spos::lab1::demo::g_func<O>(x);
+}
 
 int  _tmain(int argc, TCHAR *argv[]){
 
@@ -58,17 +70,39 @@ int  _tmain(int argc, TCHAR *argv[]){
         isInitialized = true;
     }
 
+    if(argvStrZero == "demoF"){
+        xValue = f_func_demo<spos::lab1::demo::INT>(stoi(argvStrOne));
+        isInitialized = true;
+    }
+
+    if(argvStrZero == "demoG"){
+        xValue = g_func_demo<spos::lab1::demo::INT>(stoi(argvStrOne));
+        isInitialized = true;
+    }
+
     if(!isInitialized){
         cout << "ERROR" << endl;
         return -1;
     }
 
-    funcResult.xResult = xValue;
-    funcResult.func = argvStrZero[0];
 
-    resultCDS.dwData = GET_RESULT;         // function identifier
+    funcResult.xResult = xValue;
+
+
+    if(argvStrZero != "demoF" && argvStrZero != "demoG"){
+        resultCDS.dwData = GET_RESULT;         // function identifier
+        funcResult.func = argvStrZero[0];
+    } else {
+        resultCDS.dwData = GET_RESULT_DEMO;
+        if(argvStrZero == "demoF")
+            funcResult.func = 'q';
+        else
+            funcResult.func = 'w';
+    }
+
     resultCDS.cbData = sizeof(funcResult);     // size of data
     resultCDS.lpData = &funcResult;            // data structure
+
 
     HWND hwDispatch = FindWindow("hiddenWindowClass", "hiddenWindow");
 

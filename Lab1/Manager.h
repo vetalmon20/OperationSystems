@@ -14,6 +14,14 @@
 #define FUNCTION_PATH R"(D:\University\3rd Course\OperationSystems\OperationSystems\Lab1\Functions\cmake-build-debug\Functions.exe)"
 #define GET_TEXT 1
 #define GET_RESULT 1
+#define GET_RESULT_DEMO 2
+
+#define DEMOFUNC_1 2
+#define DEMOFUNC_2 3
+#define DEMOFUNC_3 4
+#define DEMOFUNC_4 5
+#define DEMOFUNC_5 6
+#define DEMOFUNC_6 7
 
 #include <thread>
 #include <windows.h>
@@ -46,20 +54,12 @@ private:
     /** @brief Holds the handlers for windows */
     HWND hInputWindow, hWrongValueLabel, hFxLabel, hGxLabel, hBinaryResultLabel, hComputeButton, hErrorLabel;      ////
 
+    HWND hDemoFuncsButtons[6];
     /** @brief Holds the process information variables of the computing processes */
     std::vector<PROCESS_INFORMATION> processInfArr;
 
     /** @brief Holds the variable that store all the information about passed data by computation processes */
     PCOPYDATASTRUCT pCopyDataStruct;
-
-    /**
-     * @brief creates a process for g or f function that evaluates the value from input x
-     * @param exePath path of the function process
-     * @param funcName could be f, g or b(for binary func)
-     * @param x input value
-     * @return whether the process where created
-     */
-    bool evaluateFuncProc(LPCTSTR exePath, std::string funcName, int x);                ////
 
     /**
      * @brief register and creates the main window
@@ -74,6 +74,8 @@ private:
      * @return whether the window was created
      */
     static bool createHiddenWindow(HINSTANCE hInst);
+
+
 
 public:
     Manager();
@@ -104,6 +106,8 @@ public:
 
     PCOPYDATASTRUCT getPCopyDataStruct() ;
 
+    HWND *getHDemoFuncsButtons();
+
     void setPCopyDataStruct(PCOPYDATASTRUCT pCopyDataStruct);
 
     void setInputValueInt(int *inputValueInt);
@@ -126,6 +130,15 @@ public:
      * @brief terminates processes for functions f and g
      */
     void terminateChildProcesses();
+
+    /**
+     * @brief creates a process for g or f function that evaluates the value from input x
+     * @param exePath path of the function process
+     * @param funcName could be f, g or b(for binary func)
+     * @param x input value
+     * @return whether the process where created
+     */
+    bool evaluateFuncProc(LPCTSTR exePath, std::string funcName, int x);                ////
 
     /**
      * @brief creates a process for binary func that evaluates f(x) * g(x)
@@ -154,6 +167,8 @@ public:
      */
     bool callFunctions(int x);
 
+    bool callDemoFunctions(int x);
+
     /**
      * @brief adds labels and button on the main window
      * @param hwnd main window handler
@@ -165,6 +180,10 @@ public:
      * @param hInst main window descriptor
      */
     static void windowsController(HINSTANCE hInst);
+
+    void disableButtons();
+
+    void enableButtons();
 
 };
 
