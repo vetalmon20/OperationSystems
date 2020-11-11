@@ -3,3 +3,6 @@ Lab1/cmake-build-debug
 .gradle
 Supplementary
 Tannenbaum.pdf
+.idea
+.gradle
+build
