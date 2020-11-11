@@ -30,9 +30,9 @@ int g_func_demo(int x){
 
 int  _tmain(int argc, TCHAR *argv[]){
 
-    for(int i = 0; i < argc; i++){
-        cout << argv[i] << " - - - STRING NUMBER:" << i << endl;
-    }
+    //for(int i = 0; i < argc; i++){
+        //cout << argv[i] << " - - - STRING NUMBER:" << i << endl;
+    //}
 
     if(argc <= 1)
         return -1;
@@ -44,7 +44,7 @@ int  _tmain(int argc, TCHAR *argv[]){
 
     if(argvStrZero == "g"){
         xValue = Functions::gFunc(stoi(argvStrOne));
-        cout << "THE VALUE OF FUNCTION G:" << xValue << endl;
+        //cout << "THE VALUE OF FUNCTION G:" << xValue << endl;
 
         isInitialized = true;
 
@@ -52,7 +52,7 @@ int  _tmain(int argc, TCHAR *argv[]){
 
     if(argvStrZero == "f"){
         xValue = Functions::fFunc(stoi(argvStrOne));
-        cout << "THE VALUE OF FUNCTION F:" << xValue << endl;
+        //cout << "THE VALUE OF FUNCTION F:" << xValue << endl;
 
         isInitialized = true;
     }
@@ -65,7 +65,7 @@ int  _tmain(int argc, TCHAR *argv[]){
         fx = stoi(argvStrOne);
         gx = stoi(argvStrTwo);
         xValue = Functions::binaryOperation(fx, gx);
-        cout << "THE VALUE OF FUNCTION B:" << xValue << endl;
+        //cout << "THE VALUE OF FUNCTION B:" << xValue << endl;
 
         isInitialized = true;
     }

@@ -81,6 +81,8 @@ bool Manager::evaluateBinaryProc(LPCTSTR exePath, std::string funcName, int fxVa
     return true;
 }
 
+
+
 void Manager::terminateChildProcesses() {
     for(auto & i : this->processInfArr){
         if(!TerminateProcess(i.hProcess, 0))
