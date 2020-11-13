@@ -79,6 +79,5 @@ public class DekkerTest {
         thread6.join();
 
         Assert.assertEquals(counter, 20000);
-        counter = 0;
     }
 }
