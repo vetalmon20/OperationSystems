@@ -7,5 +7,6 @@ public interface FixNumLock extends Lock {
     int getId();
     boolean register();
     boolean unregister();
+    boolean register(long id);
     void reset();
 }

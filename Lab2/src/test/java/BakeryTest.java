@@ -59,6 +59,8 @@ public class BakeryTest {
 
     @Test
     public void bakeryLockTest_NTHREADSTEST() throws  InterruptedException {
+        bakeryLock = new BakeryLock();
+        bakeryLock.reset();
         counter = 0;
         Runnable counterIncrementation500 = () -> {
             bakeryLock.register();

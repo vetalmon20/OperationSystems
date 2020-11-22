@@ -14,10 +14,9 @@ public abstract class AbstractFixNumLock implements FixNumLock {
     //protected Set<Long> registeredThreads = new HashSet<>();
     protected List<Long> registeredThreads;
 
-    public AbstractFixNumLock() {}
     public AbstractFixNumLock(int threadNumber){
         this.threadNumber = threadNumber;
-        this.registeredThreads = new ArrayList<>();
+        this.registeredThreads = new ArrayList<>(threadNumber);
     }
 
     public int getThreadNumber() {
@@ -45,6 +44,24 @@ public abstract class AbstractFixNumLock implements FixNumLock {
 
             if(registeredThreads.contains(id)){
                 System.out.println("The thread with the same id is already present[register func]");
+                return false;
+            }
+
+            if(registeredThreads.size() >= threadNumber){
+                System.out.println("The numbers of threads is exceeded[register func]");
+                return false;
+            }
+
+            registeredThreads.add(id);
+            return true;
+        }
+    }
+
+    public boolean register(long id){
+        synchronized (sync) {
+            if(registeredThreads.contains(id)){
+                System.out.println("The thread with the same id is already present[register func]");
+                return false;
             }
 
             if(registeredThreads.size() >= threadNumber){
