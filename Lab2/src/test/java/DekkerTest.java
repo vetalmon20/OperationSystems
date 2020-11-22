@@ -1,4 +1,4 @@
-import com.university.DekkerLock;
+import com.university.locks.DekkerLock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,6 +10,7 @@ public class DekkerTest {
     @Test
     public void dekkerCounterTest() throws InterruptedException {
         Runnable counterIncrementation100 = () -> {
+            dekkerLock.register();
             for(int i = 0; i < 100; i++){
                 System.out.println("Locking thread: " + Thread.currentThread().getId());
                 dekkerLock.lock();
@@ -19,9 +20,11 @@ public class DekkerTest {
                 dekkerLock.unlock();
                 System.out.println("Unlocking thread: " + Thread.currentThread().getId());
             }
+            dekkerLock.unregister();
         };
 
         Runnable counterIncrementation1000 = () -> {
+            dekkerLock.register();
             for(int i = 0; i < 1000; i++){
                 System.out.println("Locking thread: " + Thread.currentThread().getId());
                 dekkerLock.lock();
@@ -31,9 +34,11 @@ public class DekkerTest {
                 dekkerLock.unlock();
                 System.out.println("Unlocking thread: " + Thread.currentThread().getId());
             }
+            dekkerLock.unregister();
         };
 
         Runnable counterIncrementation10000 = () -> {
+            dekkerLock.register();
             for(int i = 0; i < 10000; i++){
                 System.out.println("Locking thread: " + Thread.currentThread().getId());
                 dekkerLock.lock();
@@ -43,6 +48,7 @@ public class DekkerTest {
                 dekkerLock.unlock();
                 System.out.println("Unlocking thread: " + Thread.currentThread().getId());
             }
+            dekkerLock.unregister();
         };
 
 
