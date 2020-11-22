@@ -33,7 +33,7 @@ public class Consumer implements Runnable {
             buffer.print();
             System.out.println("Consumed item: " + consumedItem);
             if (consumedItem - 1 != lastItem) {
-                throw new RuntimeException("Lost item! " + lastItem + " and then " + consumedItem);
+                throw new RuntimeException("Item loss: " + lastItem + " - " + consumedItem);
             }
             lastItem = consumedItem;
 
