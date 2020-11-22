@@ -1,7 +1,11 @@
-package com.university;
+package com.university.locks;
+
+import com.university.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,32 +13,40 @@ import java.util.concurrent.locks.Condition;
 
 public class BakeryLock extends AbstractFixNumLock {
 
-    private int MAX_THREAD_ID = 256;
-    //private static ArrayList<Long> tickets;
-    private static CopyOnWriteArrayList<Long> tickets;
+    private final int MAX_THREAD_ID = 256;
+    //private static CopyOnWriteArrayList<Long> tickets;
+    private static List<Integer> tickets;
     private static ArrayList<AtomicBoolean> choosing;
 
     public BakeryLock(){
         /*super(256);
-        tickets = new ArrayList<>(MAX_THREAD_ID);
-        choosing = new ArrayList<>(MAX_THREAD_ID);
-        Utils.fillList(MAX_THREAD_ID, 0L, tickets);
-        Utils.fillList(MAX_THREAD_ID, new AtomicBoolean(false), choosing);*/
-
-        super(256);
         ArrayList<Long> pseudoTickets = new ArrayList<>(MAX_THREAD_ID);
         Utils.fillList(MAX_THREAD_ID, 0L, pseudoTickets);
         tickets = new CopyOnWriteArrayList<>(pseudoTickets);
         choosing = new ArrayList<>(MAX_THREAD_ID);
-        Utils.fillList(MAX_THREAD_ID, new AtomicBoolean(false), choosing);
+        //Utils.fillList(MAX_THREAD_ID, new AtomicBoolean(false), choosing);
+        Utils.fillList(MAX_THREAD_ID, Boolean.FALSE, choosing);
+        threadNumber = MAX_THREAD_ID;*/
+        super(256);
+        threadNumber = 256;
+        choosing = new ArrayList<>(Collections.nCopies(threadNumber, new AtomicBoolean(false)));
+        tickets = new ArrayList<>(Collections.nCopies(threadNumber, 0));
+
     }
 
     public BakeryLock(int threadNumber) {
         /*super(threadNumber);
-        tickets = new ArrayList<>(threadNumber);
+        ArrayList<Long> pseudoTickets = new ArrayList<>(threadNumber);
+        Utils.fillList(threadNumber, 0L, pseudoTickets);
+        tickets = new CopyOnWriteArrayList<>(pseudoTickets);
         choosing = new ArrayList<>(threadNumber);
-        Utils.fillList(threadNumber, 0L, tickets);
-        Utils.fillList(threadNumber, new AtomicBoolean(false), choosing);*/
+        //Utils.fillList(threadNumber, new AtomicBoolean(false), choosing);
+        Utils.fillList(threadNumber, Boolean.FALSE, choosing);
+        this.threadNumber = threadNumber;*/
+        super(threadNumber);
+        this.threadNumber = threadNumber;
+        choosing = new ArrayList<>(Collections.nCopies(threadNumber, new AtomicBoolean(false)));
+        tickets = new ArrayList<>(Collections.nCopies(threadNumber, 0));
     }
 
     public int getMAX_THREAD_ID() {
@@ -43,11 +55,16 @@ public class BakeryLock extends AbstractFixNumLock {
 
     @Override
     public void lock() {
-        int id = (int) getId();
-        //choosing.set(id, new AtomicBoolean(true));
+        //if(!registeredThreads.contains(Thread.currentThread().getId())){
+            //register();
+        //}
+        //int id = (int) getId();
+        int id = getId();
         choosing.get(id).compareAndSet(false, true);
+        //choosing.set(id, true);
 
-        long max = 0;
+        //long max = 0;
+        int max = 0;
         for (int i = 0; i < threadNumber; i++) {
             if (tickets.get(i) > max) {
                 max = tickets.get(i);
@@ -55,23 +72,22 @@ public class BakeryLock extends AbstractFixNumLock {
         }
         tickets.set(id, max + 1);
 
-        //choosing.set(id, new AtomicBoolean(false));
-        //choosing.get(id).set(false);
         choosing.get(id).compareAndSet(true, false);
+        //choosing.set(id, false);
 
-        for (int i = 0; i < threadNumber; ++i) {
+        for (int i = 0; i < threadNumber; i++) {
             if (i != id) {
-                while (choosing.get(i).get());
-                while (!tickets.get(i).equals(0L) && (tickets.get(id) > tickets.get(i) ||
-                        (tickets.get(id).equals(tickets.get(i)) && id > i)));
+                while (choosing.get(i).get()){}
+                while (!tickets.get(i).equals(0) && (tickets.get(id) > tickets.get(i) ||
+                        (tickets.get(id).equals(tickets.get(i)) && id > i))){}
             }
         }
-        System.out.println("In the critical section: " + tickets.get(id));
+        System.out.println("In the critical section: " + tickets.get(id) + " " + tickets.get(1 - id) + " " + Thread.currentThread().getId());
     }
 
     @Override
     public void unlock() {
-        tickets.set((int) getId(), 0L);
+        tickets.set(getId(), 0);
     }
 
     @Override

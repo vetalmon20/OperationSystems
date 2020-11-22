@@ -1,31 +1,42 @@
-package com.university;
+package com.university.locks;
 
+import com.university.utils.Utils;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractFixNumLock implements FixNumLock {
 
-    protected static int threadNumber = 10;
+    protected int threadNumber;
     private final Object sync = new Object();
-    protected Set<Long> registeredThreads = new HashSet<>();
+    //protected Set<Long> registeredThreads = new HashSet<>();
+    protected List<Long> registeredThreads;
 
     public AbstractFixNumLock() {}
     public AbstractFixNumLock(int threadNumber){
-        AbstractFixNumLock.threadNumber = threadNumber;
+        this.threadNumber = threadNumber;
+        this.registeredThreads = new ArrayList<>();
     }
 
-    public static int getThreadNumber() {
-        return threadNumber;
+    public int getThreadNumber() {
+        return this.threadNumber;
     }
 
-    public Set<Long> getRegisteredThreads() {
+    public List<Long> getRegisteredThreads() {
         return registeredThreads;
     }
 
     @Override
+    public int getId(){
+        return registeredThreads.indexOf(Thread.currentThread().getId());
+    }
+
+    /*@Override
     public long getId(){
         return Thread.currentThread().getId();
-    }
+    }*/
 
     @Override
     public boolean register(){
