@@ -4,13 +4,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.locks.Condition;
 
-public class ImrovedBakeryLock extends AbstractFixNumLock {
+public class ImprovedBakeryLock extends AbstractFixNumLock {
 
     AtomicIntegerArray ticket;      // ticket for threads in line, n - number of threads
     AtomicIntegerArray entering;    // 1 when thread entering in line
 
 
-    public ImrovedBakeryLock(int threadNumber) {
+    public ImprovedBakeryLock(int threadNumber) {
         super(threadNumber);
         this.ticket = new AtomicIntegerArray(threadNumber);
         this.entering = new AtomicIntegerArray(threadNumber);
