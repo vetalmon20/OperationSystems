@@ -3,6 +3,7 @@ package com.university.task4;
 import java.util.List;
 
 public class Producer implements Runnable {
+
     //private final List<Integer> buffer;
     private final Buffer buffer;
     private Consumer consumer;

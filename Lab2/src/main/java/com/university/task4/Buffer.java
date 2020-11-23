@@ -3,6 +3,7 @@ package com.university.task4;
 import java.util.Arrays;
 
 public class Buffer {
+
     private final Integer[] buffer;
     private final int maxSize;
     private int currentSize = 0;

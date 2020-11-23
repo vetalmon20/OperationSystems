@@ -3,6 +3,7 @@ package com.university.task4;
 import java.util.List;
 
 public class Consumer implements Runnable {
+
     private final Buffer buffer;
     private Producer producer;
     private int lastItem = -1;

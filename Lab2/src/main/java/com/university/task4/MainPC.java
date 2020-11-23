@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MainPC {
+
     public static final int BufferMax = 5;
     //public static final List<Integer> buffer = new LinkedList<>();
     public static final Buffer buffer = new Buffer(BufferMax, true);
