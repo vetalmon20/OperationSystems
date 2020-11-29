@@ -26,8 +26,9 @@ public class ImprovedBakeryLock extends AbstractFixNumLock {
             }
         }
         ticket.set(threadId, max + 1);
-        System.out.println("Thread: " + threadId + "\tTicket: " + (1 + max));
+        //System.out.println("Thread: " + threadId + "\tTicket: " + (1 + max));
         entering.set(threadId, 0);
+
         for (int i = 0; i < ticket.length(); ++i) {
             if (i != threadId) {
                 while (entering.get(i) == 1) {
