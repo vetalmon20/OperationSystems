@@ -1,9 +1,6 @@
 package com.university.benchmark;
 
-import com.university.locks.BakeryLock;
-import com.university.locks.DekkerLock;
-import com.university.locks.FixNumLock;
-import com.university.locks.ImprovedBakeryLock;
+import com.university.locks.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +25,15 @@ public class MainBenchmarkLock {
 
         lock = new ImprovedBakeryLock(threadNumber);
         benchmarkRun();
-        print("Improved Bakery Lock");
+        print("ImprovedBakeryLock");
 
         lock = new BakeryLock(threadNumber);
         benchmarkRun();
-        print("Bakery Lock");
+        print("BakeryLock");
+
+        lock = new SpinLock();
+        benchmarkRun();
+        print("SpinLock");
 
 //        if (threadNumber == 2) {
 //            lock = new DekkerLock();

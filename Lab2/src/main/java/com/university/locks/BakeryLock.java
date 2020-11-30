@@ -86,7 +86,7 @@ public class BakeryLock extends AbstractFixNumLock {
                         (tickets.get(id).equals(tickets.get(i)) && (id > i)))){}
             }
         }
-        System.out.println("In the critical section: " + tickets.get(id) + " " +  " " + Thread.currentThread().getId());
+        //System.out.println("In the critical section: " + tickets.get(id) + " " +  " " + Thread.currentThread().getId());
     }
 
     @Override
