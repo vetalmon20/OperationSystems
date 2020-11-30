@@ -35,6 +35,10 @@ public class MainBenchmarkLock {
         benchmarkRun();
         print("SpinLock");
 
+        lock = new MonitorLock();
+        benchmarkRun();
+        print("MonitorLock");
+
 //        if (threadNumber == 2) {
 //            lock = new DekkerLock();
 //            benchmarkRun();
