@@ -44,15 +44,13 @@ public class MainBenchmarkLock {
 //            benchmarkRun();
 //            print("Dekker Lock");
 //        }
+
         System.out.println("====================\n");
     }
 
     private static void benchmarkRun() {
         benchmarkTime = new ArrayList<>(runs);
         for (int j = 0; j < runs; ++j) {
-            if (lock instanceof FixNumLock) {
-                ((FixNumLock) lock).reset();
-            }
             threads = new ArrayList<>(threadNumber);
             for (int i = 0; i < threadNumber; ++i) {
                 Runnable r = new BenchmarkLock(lock, steps);
@@ -75,6 +73,9 @@ public class MainBenchmarkLock {
             long resultTime = (System.nanoTime() - startTime) / 1_000_000;
             benchmarkTime.add(resultTime);
 
+            if (lock instanceof FixNumLock) {
+                ((FixNumLock) lock).reset();
+            }
         }
     }
 
